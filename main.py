@@ -63,20 +63,17 @@ for img in tqdm(os.listdir(data_pth)):
   datalist.append(img)
 print(len(datalist), datalist[0])
 
-# inception_model = inception_v3(pretrained=False)
-# inception_model.load_state_dict(torch.load(inception_pth))
-# #inception_model.to(device)
-# inception_model = inception_model.eval() # Evaluation mode
-# inception_model.fc = torch.nn.Identity()
-# # gen.eval()
-n=3
-evalbatch = n*n
-n_samples= 1024 #1024
+inception_model = inception_v3(pretrained=False)
+inception_model.load_state_dict(torch.load(inception_pth))
+#inception_model.to(device)
+inception_model = inception_model.eval() # Evaluation mode
+inception_model.fc = torch.nn.Identity()
+# gen.eval()
+
 device= 'cpu'
-freq= 5
 latent_dim = 100
 img_shape=(128,128,3)
-utils= utils(out_pth, model_pth, freq, img_shape)
+utils= utils(out_pth, model_pth, img_shape, inception_model)
 
 checkpoint= None
 if checkpoint:

@@ -3,34 +3,37 @@ import os
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 import numpy as np
-# import torch
-# from torch import nn
-# from tqdm.auto import tqdm
-# from torchvision import transforms
-# from torchvision.datasets import CelebA
-# from torchvision.utils import make_grid
-# from torch.utils.data import DataLoader
-# import matplotlib.pyplot as plt
-# import keras
-# from torch.distributions import MultivariateNormal
-# import pandas as pd
-# import seaborn as sns 
-# import scipy
-# from skimage.transform import resize
-# from torchvision.models import inception_v3
+import torch
+from torch import nn
+from tqdm.auto import tqdm
+from torchvision import transforms
+from torchvision.datasets import CelebA
+from torchvision.utils import make_grid
+from torch.utils.data import DataLoader
+import matplotlib.pyplot as plt
+import keras
+from torch.distributions import MultivariateNormal
+import pandas as pd
+import seaborn as sns 
+import scipy
+from skimage.transform import resize
+from torchvision.models import inception_v3
 from PIL import Image 
-# import torchvision.transforms as transforms
-# import math
+import torchvision.transforms as transforms
+import math
 
 from numpy import expand_dims, zeros, ones , vstack, random 
 from numpy.random import randn, randint
 
 class utils():
-  def __init__(self, out_pth, model_pth, freq, img_shape):
+  def __init__(self, out_pth, model_pth, img_shape, inception_model):
     self.out_pth= out_pth
     self.model_pth= model_pth
-    self.freq = freq 
     self.img_shape= img_shape
+    self.incception_model = inception_model
+    self.freq = 5
+    self.evalbatch =9
+    self.n_samples= 1024
     pass 
   # create and save a plot of generated images
   def save_plot(self, examples, n=2, path=None):
@@ -184,11 +187,11 @@ class utils():
     # calc fid after every f epoch 
       if i%self.freq == 0:
         self.summarize_performance(i,j , g_model, d_model, datalist, latent_dim, img_dir)
-        # mu_real1, sigma_real1 = mu_sigma_calc(inception_model, evalbatch, n_samples, 0, None)
-        # mu_real2, sigma_real2 = mu_sigma_calc(inception_model, evalbatch, n_samples, 0, None)
-        # mu_fake, sigma_fake = mu_sigma_calc(inception_model, evalbatch, n_samples, 1, g_model)
-        # print(f"fid r1-r2/ epoch {i}", frechet_distance(mu_real1, mu_real2, sigma_real1, sigma_real2).item())
-        # print(f"fid r1-f/epoch {i}", frechet_distance(mu_real1, mu_fake, sigma_real1, sigma_fake).item())
-        # print(f"fid r2-f/epoch {i}", frechet_distance(mu_real2, mu_fake, sigma_real2, sigma_fake).item())
+        mu_real1, sigma_real1 = self.mu_sigma_calc(self.inception_model, self.evalbatch, self.n_samples, 0, None)
+        mu_real2, sigma_real2 = self.mu_sigma_calc(self.inception_model, self.evalbatch, self.n_samples, 0, None)
+        mu_fake, sigma_fake = self.mu_sigma_calc(self.inception_model, self.evalbatch, self.n_samples, 1, g_model)
+        print(f"fid r1-r2/ epoch {i}", self.frechet_distance(mu_real1, mu_real2, sigma_real1, sigma_real2).item())
+        print(f"fid r1-f/epoch {i}", self.frechet_distance(mu_real1, mu_fake, sigma_real1, sigma_fake).item())
+        print(f"fid r2-f/epoch {i}", self.frechet_distance(mu_real2, mu_fake, sigma_real2, sigma_fake).item())
 
 
