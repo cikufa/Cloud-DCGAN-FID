@@ -1,29 +1,9 @@
-import PIL
 import os
 import matplotlib.pyplot as plt
-from tqdm import tqdm
 import numpy as np
-import torch
-from torch import nn
-from tqdm.auto import tqdm
-from torchvision import transforms
-from torchvision.datasets import CelebA
-from torchvision.utils import make_grid
-from torch.utils.data import DataLoader
-import matplotlib.pyplot as plt
-import keras
-from torch.distributions import MultivariateNormal
-import pandas as pd
-import seaborn as sns 
-import scipy
-from skimage.transform import resize
-from torchvision.models import inception_v3
-from PIL import Image 
-import torchvision.transforms as transforms
-import math
 
-from numpy import expand_dims, zeros, ones , vstack, random 
-from numpy.random import randn, randint
+from PIL import Image 
+import fid
 
 class utils():
   def __init__(self, out_pth, model_pth, img_shape, inception_model):
@@ -34,7 +14,7 @@ class utils():
     self.freq = 5
     self.evalbatch =9
     self.n_samples= 1024
-    pass 
+    # pass 
   # create and save a plot of generated images
   def save_plot(self, examples, n=2, path=None):
     # scale from [-1,1] to [0,1]
@@ -52,27 +32,26 @@ class utils():
     plt.close()
 
   # evaluate the discriminator, plot generated images, save generator model
-  def summarize_performance(self, epoch,batch, g_model, d_model, datalist, latent_dim, img_dir, batch_size=8):
+  def summarize_performance(epoch,batch, g_model, d_model, datalist, latent_dim, img_dir, fid, batch_size= 8):
     # prepare real samples
     cropped_images=[] 
     img_num = np.random.randint(0,5500)
-    cropped_images, img_num, X_real, y_real = self.generate_real_samples(cropped_images, img_num, img_dir, datalist, batch_size)
+    cropped_images, img_num, X_real, y_real = generate_real_samples(cropped_images, img_num, img_dir, datalist, batchsize)
     # evaluate discriminator on real examples
-    _, acc_real = d_model.evaluate(X_real, y_real, verbose=0)
+    _ , acc_real = d_model.evaluate(X_real, y_real, verbose=0)
     # prepare fake examples
-    x_fake, y_fake = self.generate_fake_samples(g_model, latent_dim, batch_size)
+    x_fake, y_fake = generate_fake_samples(g_model, latent_dim, batchsize)
     # evaluate discriminator on fake examples
-    _, acc_fake = d_model.evaluate(x_fake, y_fake, verbose=0)
+    _ , acc_fake = d_model.evaluate(x_fake, y_fake, verbose=0)
     # summarize discriminator performance
-    #print('>Accuracy real: %.0f%%, fake: %.0f%%' % (acc_real*100, acc_fake*100))
+    #print('>Accuracy real: %.0f%%, fake: %.0f%%' % (acc_real100, acc_fake100))
     #save plot
-    self.save_plot(x_fake, n=2, path=self.out_pth+'train_%03d_%03d.png'%(epoch+1 ,batch+1))
+    save_plot(x_fake, n=2, path=outpth+'train%03d_%03d.png'%(epoch+1 ,batch+1))
     #save the generator model tile file
     if epoch%10==0:
-      filename = self.model_pth + 'generator_%03d_%03d.h5' % (epoch+1, batch+1)
-      g_model.save(filename)
-      
-      
+        filename = modelpth + 'generator%03d_%03d_fid%03d.h5' % (epoch+1, batch+1, fid)
+        g_model.save(filename)      
+
   def preprocess(self, img_dir, IMAGE_SHAPE, crop_idx=[5,7]): #in: each img/ out: 35(or less) cropped, reshaped, adjusted value images 
     cropped_images= []
     with Image.open(img_dir) as img:
@@ -149,6 +128,7 @@ class utils():
       cropped_images=[]
       # enumerate batches over the training set
       for j in range(bat_per_epo):
+        print("pog")
         cropped_images, img_num,  X_real, y_real = self.generate_real_samples(cropped_images, img_num, img_dir, datalist, half_batch)
       
       # print("x len", len(X_real))
@@ -185,13 +165,15 @@ class utils():
       
 
     # calc fid after every f epoch 
-      if i%self.freq == 0:
-        self.summarize_performance(i,j , g_model, d_model, datalist, latent_dim, img_dir)
-        mu_real1, sigma_real1 = self.mu_sigma_calc(self.inception_model, self.evalbatch, self.n_samples, 0, None)
-        mu_real2, sigma_real2 = self.mu_sigma_calc(self.inception_model, self.evalbatch, self.n_samples, 0, None)
-        mu_fake, sigma_fake = self.mu_sigma_calc(self.inception_model, self.evalbatch, self.n_samples, 1, g_model)
-        print(f"fid r1-r2/ epoch {i}", self.frechet_distance(mu_real1, mu_real2, sigma_real1, sigma_real2).item())
-        print(f"fid r1-f/epoch {i}", self.frechet_distance(mu_real1, mu_fake, sigma_real1, sigma_fake).item())
-        print(f"fid r2-f/epoch {i}", self.frechet_distance(mu_real2, mu_fake, sigma_real2, sigma_fake).item())
+      if i % self.freq == 0:
+        mu_real1, sigma_real1 = fid.mu_sigma_calc(inception_model, evalbatch, n_samples, 0, None)
+        mu_real2, sigma_real2 = fid.mu_sigma_calc(inception_model, evalbatch, n_samples, 0, None)
+        mu_fake, sigma_fake = fid.mu_sigma_calc(inception_model, evalbatch, n_samples, 1, g_model)
+        fid1 = fid.frechet_distance(mu_real1, mu_fake, sigma_real1, sigma_fake).item()
+        fid2 = fid.frechet_distance(mu_real2, mu_fake, sigma_real2, sigma_fake).item()
+        summarize_performance(i,j , g_model, d_model, datalist, latent_dim, img_dir,fid , batch_size=8)
+        # print(f"fid r1-r2/ epoch {i}", self.frechet_distance(mu_real1, mu_real2, sigma_real1, sigma_real2).item())
+        # print(f"fid r1-f/epoch {i}", self.frechet_distance(mu_real1, mu_fake, sigma_real1, sigma_fake).item())
+        # print(f"fid r2-f/epoch {i}", self.frechet_distance(mu_real2, mu_fake, sigma_real2, sigma_fake).item())
 
 

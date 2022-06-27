@@ -1,4 +1,3 @@
-import scipy.stats as stats
 import PIL
 import os
 import matplotlib.pyplot as plt
@@ -8,16 +7,13 @@ import numpy as np
 from torch import nn
 from tqdm.auto import tqdm
 from torchvision import transforms
-from torchvision.datasets import CelebA
-from torchvision.utils import make_grid
-from torch.utils.data import DataLoader
 import matplotlib.pyplot as plt
 import keras
 from torch.distributions import MultivariateNormal
 import pandas as pd
 import seaborn as sns 
 import scipy
-from skimage.transform import resize
+# from skimage.transform import resize
 from torchvision.models import inception_v3
 from PIL import Image 
 import torchvision.transforms as transforms
@@ -108,7 +104,7 @@ class eval():
           real_features = inception_model(real_samples.to(device)).detach().to('cpu') # (evalbatch,2048)
           features_list.append(real_features)
           
-        elif (rf == 1): #getin fake image features  
+        elif rf == 1: #getin fake image features  
           noise = np.random.random((evalbatch, self.latent_dim))
           fake_samples = (generator.predict(noise) + 1)/2  #(evalbatch, 128,128,3)
           #fake_samples= torch.tensor(fake_samples).reshape(evalbatch,3,128,128)

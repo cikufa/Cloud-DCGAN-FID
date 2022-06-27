@@ -1,0 +1,12 @@
+Pillow
+numpy
+tensorflow
+torch
+torchvision
+matplotlib
+tqdm
+keras
+pandas
+seaborn
+scipy
+scikit-image

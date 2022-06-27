@@ -1,38 +1,22 @@
-from statistics import mode
 from unittest.main import MODULE_EXAMPLES
-import PIL
 import os
-import matplotlib.pyplot as plt
+from pathlib import Path
 from tqdm import tqdm
-# import torch
-import numpy as np
-#from torch import nn
+import torch
 from tqdm.auto import tqdm
-#from torchvision import transforms
-#from torchvision.datasets import CelebA
-#from torchvision.utils import make_grid
-#from torch.utils.data import DataLoader
-import matplotlib.pyplot as plt
 import keras
-#from torch.distributions import MultivariateNormal
-import pandas as pd
-#import seaborn as sns 
-#import scipy
-#from skimage.transform import resize
-#from torchvision.models import inception_v3
-from PIL import Image 
-import math
-#!pip install -Uqq ipdb
-#import ipdb
-import pdb
-
-import warnings
-warnings.filterwarnings("ignore")
-#from torchvision.models import inception_v3
-
+from torch.distributions import MultivariateNormal
+from torchvision.models import inception_v3
+# !pip install -Uqq ipdb
+# import pdb
+from torchvision.models import inception_v3
 from disc import *
 from gen import *
 from utils import *
+
+import warnings
+warnings.filterwarnings("ignore")
+
 # define the combined generator and discriminator model, for updating the generator
 def define_gan(g_model, d_model):
 	# make weights in the discriminator not trainable
@@ -54,23 +38,28 @@ def define_gan(g_model, d_model):
 # data_pth = 'gdrive/MyDrive/cloud_gan/gan_dataset/understanding_cloud_organization/train_images' 
 # inception_pth= 'gdrive/MyDrive/cloud_gan/inception_v3_google-1a9a5a14.pth'
 
-model_pth = 'model'
-out_pth= 'out'
-data_pth= 'dataset/train_images'
-inception_pth= 'inception_v3_google-1a9a5a14.pth'
-datalist=[]
+model_pth = 'model/'
+out_pth = 'out/'
+Path(out_pth).mkdir(parents=True, exist_ok=True)
+Path(model_pth).mkdir(parents=True, exist_ok=True)
+# data_pth = '../Cloud-Segmentation/train_images'
+data_pth = 'dataset/train_images'
+inception_pth = 'inception_v3_google-1a9a5a14.pth'
+
+datalist = []
 for img in tqdm(os.listdir(data_pth)):
   datalist.append(img)
 print(len(datalist), datalist[0])
 
+device = torch.device('cuda:0') if torch.cuda.is_available() else torch.device('cpu:0')
+
 inception_model = inception_v3(pretrained=False)
 inception_model.load_state_dict(torch.load(inception_pth))
-#inception_model.to(device)
+inception_model.to(device)
 inception_model = inception_model.eval() # Evaluation mode
 inception_model.fc = torch.nn.Identity()
 # gen.eval()
 
-device= 'cpu'
 latent_dim = 100
 img_shape=(128,128,3)
 utils= utils(out_pth, model_pth, img_shape, inception_model)
