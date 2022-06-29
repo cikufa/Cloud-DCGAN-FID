@@ -7,8 +7,6 @@ from tqdm.auto import tqdm
 import keras
 from torch.distributions import MultivariateNormal
 from torchvision.models import inception_v3
-# !pip install -Uqq ipdb
-# import pdb
 from torchvision.models import inception_v3
 from disc import *
 from gen import *
@@ -17,17 +15,11 @@ from utils import *
 import warnings
 warnings.filterwarnings("ignore")
 
-# define the combined generator and discriminator model, for updating the generator
 def define_gan(g_model, d_model):
-	# make weights in the discriminator not trainable
 	d_model.trainable = False
-	# connect them
 	model = Sequential()
-	# add generator
 	model.add(g_model)
-	# add the discriminator
 	model.add(d_model)
-	# compile model
 	opt = Adam(learning_rate=0.0002, beta_1=0.5)
 	model.compile(loss='binary_crossentropy', optimizer=opt)
 	return model
@@ -40,16 +32,13 @@ def define_gan(g_model, d_model):
 
 model_pth = 'model/'
 out_pth = 'out/'
+checkpoint_pth= 'model/checkpoint/'
 Path(out_pth).mkdir(parents=True, exist_ok=True)
 Path(model_pth).mkdir(parents=True, exist_ok=True)
+Path(checkpoint_pth).mkdir(parents=True, exist_ok=True)
 # data_pth = '../Cloud-Segmentation/train_images'
 data_pth = 'dataset/train_images'
 inception_pth = 'inception_v3_google-1a9a5a14.pth'
-
-datalist = []
-for img in tqdm(os.listdir(data_pth)):
-  datalist.append(img)
-print(len(datalist), datalist[0])
 
 device = torch.device('cuda:0') if torch.cuda.is_available() else torch.device('cpu:0')
 
@@ -62,12 +51,14 @@ inception_model.fc = torch.nn.Identity()
 
 latent_dim = 100
 img_shape=(128,128,3)
-utils= utils(out_pth, model_pth, img_shape, inception_model)
 
+util = utils(out_pth, model_pth, img_shape)
+datalist= util.load_data(data_pth)
+fid= eval(data_pth, datalist, latent_dim, inception_model, util, evalbatch= 9 , n_samples= 1024)
 checkpoint= None
 if checkpoint:
-  d_model = keras.models.load(f'checkpoint/disc_{checkpoint}.h5')
-  g_model = keras.models.load(f'checkpoint/gen_{checkpoint}.h5')
+  d_model = keras.models.load(os.path.join(checkpoint_pth, f'disc_{checkpoint}.h5'))
+  g_model = keras.models.load(os.path.join(checkpoint_pth, f'gen_{checkpoint}.h5'))
 else:
   d= discriminator()
   g= generator()
@@ -77,5 +68,5 @@ else:
   #print("_________________________________________________________________")
   #print(g_model.summary())
 gan_model = define_gan(g_model, d_model)
-utils.train(data_pth, datalist, g_model, d_model, gan_model, latent_dim, n_epochs=200, batch_size=8)
+util.train(data_pth, datalist, g_model, d_model, gan_model, latent_dim, fid, n_epochs=10, batch_size=8)
 
