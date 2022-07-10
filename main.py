@@ -11,7 +11,7 @@ from torchvision.models import inception_v3
 from disc import *
 from gen import *
 from utils import *
-
+import csv
 import warnings
 warnings.filterwarnings("ignore")
 
@@ -68,5 +68,8 @@ else:
   #print("_________________________________________________________________")
   #print(g_model.summary())
 gan_model = define_gan(g_model, d_model)
-util.train(data_pth, datalist, g_model, d_model, gan_model, latent_dim, fid, n_epochs=10, batch_size=8)
+with open('log.csv', 'w') as f:
+  write=csv.writer(f) 
+  write.writerow(['epoch/batch', 'dloss real', 'dloss fake', 'gloss'])
+  util.train(data_pth, datalist, g_model, d_model, gan_model, latent_dim, fid,write,  n_epochs=500, batch_size=16)
 

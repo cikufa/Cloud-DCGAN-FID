@@ -11,10 +11,10 @@ class generator():
     def __call__(self, latent_dim):
         model = Sequential()
         # foundation for 4x4 image
-        n_nodes = 256 * 4 * 4
+        n_nodes = 256 * 8 * 8
         model.add(Dense(n_nodes, input_dim=latent_dim))
         model.add(LeakyReLU(alpha=0.2))
-        model.add(Reshape((4, 4, 256)))
+        model.add(Reshape((8, 8, 256)))
         # upsample to 8x8
         model.add(Conv2DTranspose(128, (4,4), strides=(2,2), padding='same'))
         model.add(LeakyReLU(alpha=0.2))
@@ -22,7 +22,7 @@ class generator():
         model.add(Conv2DTranspose(128, (4,4), strides=(2,2), padding='same'))
         model.add(LeakyReLU(alpha=0.2))
         # upsample to 32x32
-        model.add(Conv2DTranspose(128, (4,4), strides=(2,2), padding='same'))
+        model.add(Conv2DTranspose(256, (4,4), strides=(2,2), padding='same'))
         model.add(LeakyReLU(alpha=0.2))
 
         # #sadeghi: upsample to 96*96
@@ -30,7 +30,7 @@ class generator():
         # model.add(LeakyReLU(alpha=0.2))
 
         #sadeghi: upsample to 128*128
-        model.add(Conv2DTranspose(128, (8,8), strides=(4,4), padding='same'))
+        model.add(Conv2DTranspose(512, (4,4), strides=(2,2), padding='same'))
         model.add(LeakyReLU(alpha=0.2))
 
         #sadeghi: upsample to 128*128
@@ -38,7 +38,7 @@ class generator():
         # model.add(LeakyReLU(alpha=0.2))
 
         # output layer
-        model.add(Conv2D(3, (3,3), activation='tanh', padding='same'))
+        model.add(Conv2D(3, (5,5), activation='tanh', padding='same'))
         print(model.summary)
         return model
 

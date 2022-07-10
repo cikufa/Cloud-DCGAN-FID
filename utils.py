@@ -1,16 +1,16 @@
 import os
 import matplotlib.pyplot as plt
 import numpy as np
-
+from tqdm import tqdm
 from PIL import Image 
 from eval import *
-
+import csv
 class utils():
   def __init__(self, out_pth, model_pth, img_shape):
     self.out_pth= out_pth
     self.model_pth= model_pth
     self.img_shape= img_shape
-    self.freq = 5
+    self.freq = 10
     self.latent_dim = 100
   
   def load_data(self,pth):
@@ -31,7 +31,7 @@ class utils():
     plt.close()
 
   # evaluate the discriminator, plot generated images, save generator model
-  def summarize_performance(self, epoch,batch, g_model, d_model, datalist, latent_dim, img_dir, fid, batch_size= 8):
+  def summarize_performance(self, epoch,batch, g_model, d_model, datalist, latent_dim, img_dir, fid, batch_size):
     cropped_images=[] 
     img_num = np.random.randint(0,5500) #datalist_size
     cropped_images, img_num, X_real, y_real = self.generate_real_samples(cropped_images, img_num, img_dir, datalist, batch_size)
@@ -100,18 +100,17 @@ class utils():
   #____________________________________________________________________________________________________________________________________
 
   def generate_fake_samples(self, g_model, latent_dim, batch_size):   # returns a batch of fake data(img, label)
-    # generate points in latent space
     noise= np.random.normal(0,1,(batch_size,latent_dim))
-    fake_img = g_model.predict(noise)
-    # create 'fake' class labels (0)
+    # fake_img = g_model.predict(noise)
+    fake_img = g_model(noise)
     #y = zeros((n_samples, 1))
     fake_label = np.random.uniform(low= 0.0, high=0.25, size=(batch_size, 1))
     return fake_img, fake_label
 
-  def train(self, img_dir, datalist, g_model, d_model, gan_model, latent_dim, fid, n_epochs, batch_size):
+  def train(self, img_dir, datalist, g_model, d_model, gan_model, latent_dim, fid,write, n_epochs, batch_size):
     #200 epoch , each epoch 1927 batch , each batch : 128 img (64 real , 64 fake) 
     #bat_per_epo = int(len(datalist) / batch_size)
-    bat_per_epo= 2 #200
+    bat_per_epo= 350 #350
     half_batch = int(batch_size / 2)
     # manually enumerate epochs
     for i in range(n_epochs):
@@ -131,7 +130,7 @@ class utils():
         gan_fake_label = np.random.uniform(low= 0.8, high=1.2, size=(batch_size, 1))
         # update the generator via the discriminator's error
         g_loss = gan_model.train_on_batch(noise, gan_fake_label)
-
+        write.writerow([f'{i}/{j}', d_loss1, d_loss2, g_loss])    
     # evaluate the model performance, sometimes
         # if (j+1) % 100 == 0:
           #print('>ep: %d,  batch: %d/%d, d1=%.3f, d2=%.3f g=%.3f' %(i+1, j+1, bat_per_epo, d_loss1, d_loss2, g_loss))
@@ -147,7 +146,7 @@ class utils():
         fid1 = fid.frechet_distance(mu_real1, mu_fake, sigma_real1, sigma_fake).item()
         fid2 = fid.frechet_distance(mu_real2, mu_fake, sigma_real2, sigma_fake).item()
         fid_mean = (fid1+fid2)/2
-        self.summarize_performance(i,j , g_model, d_model, datalist, latent_dim, img_dir, fid_mean , batch_size=8)
+        self.summarize_performance(i,j , g_model, d_model, datalist, latent_dim, img_dir, fid_mean , batch_size)
         # print(f"fid r1-r2/ epoch {i}", self.frechet_distance(mu_real1, mu_real2, sigma_real1, sigma_real2).item())
         # print(f"fid r1-f/epoch {i}", self.frechet_distance(mu_real1, mu_fake, sigma_real1, sigma_fake).item())
         # print(f"fid r2-f/epoch {i}", self.frechet_distance(mu_real2, mu_fake, sigma_real2, sigma_fake).item())

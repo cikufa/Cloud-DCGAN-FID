@@ -110,7 +110,7 @@ class eval():
           
         elif rf == 1: #getin fake image features  
           noise = np.random.random((self.evalbatch, self.latent_dim))
-          fake_samples = (generator.predict(noise) + 1)/2  #(evalbatch, 128,128,3)
+          fake_samples = (generator(noise) + 1)/2  #(evalbatch, 128,128,3)
           #fake_samples= torch.tensor(fake_samples).reshape(evalbatch,3,128,128)
           #fake_samples = torch.nn.functional.interpolate(fake_samples, size=(299, 299), mode='bilinear', align_corners=False)
           fake_samples= resize(fake_samples, (self.evalbatch, 299, 299)) #(evalbatch, 299,299,3)
