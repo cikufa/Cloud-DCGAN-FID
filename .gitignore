@@ -20,7 +20,7 @@
 *.tar
 *.zip
 *.pth
-
+*.xlsx
 # Logs and databases #
 ######################
 *.log
@@ -41,3 +41,5 @@ Thumbs.db
 model/
 out/
 dataset/
+test/
+
