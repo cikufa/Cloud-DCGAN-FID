@@ -21,6 +21,7 @@
 *.zip
 *.pth
 *.xlsx
+*.csv
 # Logs and databases #
 ######################
 *.log
