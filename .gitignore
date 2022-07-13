@@ -22,6 +22,8 @@
 *.pth
 *.xlsx
 *.csv
+*.jpg
+*.png
 # Logs and databases #
 ######################
 *.log
