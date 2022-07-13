@@ -41,7 +41,6 @@ data_pth = 'dataset/train_images'
 inception_pth = 'inception_v3_google-1a9a5a14.pth'
 
 device = torch.device('cuda:0') if torch.cuda.is_available() else torch.device('cpu:0')
-
 inception_model = inception_v3(pretrained=False)
 inception_model.load_state_dict(torch.load(inception_pth))
 inception_model.to(device)
@@ -63,13 +62,13 @@ else:
   d= discriminator()
   g= generator()
   d_model = d(img_shape)
-  #print(d_model.summary())
+  print(d_model.summary())
   g_model = g(latent_dim)
   #print("_________________________________________________________________")
-  #print(g_model.summary())
+  print(g_model.summary())
 gan_model = define_gan(g_model, d_model)
 with open('log.csv', 'w') as f:
   write=csv.writer(f) 
   write.writerow(['epoch/batch', 'dloss real', 'dloss fake', 'gloss'])
-  util.train(data_pth, datalist, g_model, d_model, gan_model, latent_dim, fid,write,  n_epochs=500, batch_size=16)
+  util.train(data_pth, datalist, g_model, d_model, gan_model, latent_dim, fid,write,  n_epochs=2, batch_size=4)
 

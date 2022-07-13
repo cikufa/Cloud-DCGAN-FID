@@ -5,6 +5,7 @@ from tqdm import tqdm
 from PIL import Image 
 from eval import *
 import csv
+from pathlib import Path 
 class utils():
   def __init__(self, out_pth, model_pth, img_shape):
     self.out_pth= out_pth
@@ -15,7 +16,7 @@ class utils():
   
   def load_data(self,pth):
     datalist = []
-    for img in tqdm(os.listdir(pth)):
+    for img in tqdm(Path(pth).glob('*.jpg')):
       datalist.append(img)
     return datalist
 
@@ -33,7 +34,7 @@ class utils():
   # evaluate the discriminator, plot generated images, save generator model
   def summarize_performance(self, epoch,batch, g_model, d_model, datalist, latent_dim, img_dir, fid, batch_size):
     cropped_images=[] 
-    img_num = np.random.randint(0,5500) #datalist_size
+    img_num = np.random.randint(0,9000) #add test data to dataset
     cropped_images, img_num, X_real, y_real = self.generate_real_samples(cropped_images, img_num, img_dir, datalist, batch_size)
     # evaluate discriminator on real examples
     _ , acc_real = d_model.evaluate(X_real, y_real, verbose=0)
@@ -85,18 +86,7 @@ class utils():
 
     #print("dataloader", len(real_images), real_images[0].shape)
     return cropped_images, img_num, real_images, real_label 
-    # training_images= []
-    # #tar_width , tar_height= IMAGE_SHAPE[1], IMAGE_SHAPE[0]
-    # for i in range(batch_size*batch_num, batch_size*(batch_num+1)):
-    #   cropped_images =preprocess(os.path.join(img_dir, datalist[i]))
-    #   print("cropped img len", len(cropped_images))
-    #   training_images= training_images + cropped_images
-      
-    # real_label = np.random.uniform(low= 0.8, high=1.2, size=(batch_size, 1))
-    # #training_data = np.hst/ack(training_data, real_label)
-    # print("dataloader", len(training_images), training_images[0].shape)
-    # return training_images, real_label
-
+   
   #____________________________________________________________________________________________________________________________________
 
   def generate_fake_samples(self, g_model, latent_dim, batch_size):   # returns a batch of fake data(img, label)
@@ -110,7 +100,7 @@ class utils():
   def train(self, img_dir, datalist, g_model, d_model, gan_model, latent_dim, fid,write, n_epochs, batch_size):
     #200 epoch , each epoch 1927 batch , each batch : 128 img (64 real , 64 fake) 
     #bat_per_epo = int(len(datalist) / batch_size)
-    bat_per_epo= 350 #350
+    bat_per_epo= 300 #30 snydsk code
     half_batch = int(batch_size / 2)
     # manually enumerate epochs
     for i in range(n_epochs):
