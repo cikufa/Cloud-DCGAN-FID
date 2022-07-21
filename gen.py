@@ -15,13 +15,13 @@ class generator():
         model.add(Dense(n_nodes, input_dim=latent_dim))
         model.add(LeakyReLU(alpha=0.2))
         model.add(Reshape((8, 8, 256)))
-        # upsample to 8x8
-        model.add(Conv2DTranspose(128, (4,4), strides=(2,2), padding='same'))
-        model.add(LeakyReLU(alpha=0.2))
         # upsample to 16x16
         model.add(Conv2DTranspose(128, (4,4), strides=(2,2), padding='same'))
         model.add(LeakyReLU(alpha=0.2))
         # upsample to 32x32
+        model.add(Conv2DTranspose(128, (4,4), strides=(2,2), padding='same'))
+        model.add(LeakyReLU(alpha=0.2))
+        # upsample to 64x64
         model.add(Conv2DTranspose(256, (4,4), strides=(2,2), padding='same'))
         model.add(LeakyReLU(alpha=0.2))
 

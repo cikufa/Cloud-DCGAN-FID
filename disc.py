@@ -31,6 +31,7 @@ class discriminator():
         model.add(Dense(1, activation='sigmoid'))
         # compile model
         opt = Adam(lr=0.0002, beta_1=0.5)
+        
         model.compile(loss='binary_crossentropy', optimizer=opt, metrics=['accuracy'])
         return model
         
