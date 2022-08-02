@@ -90,7 +90,6 @@ class eval():
     device = torch.device('cuda:0') if torch.cuda.is_available() else torch.device('cpu:0')
 
     with torch.no_grad(): # You don't need to calculate gradients here, so you do this to save memory
-    #try:
       #for real_example, _ in tqdm(dataloader, total=n_samples // batch_size): # Go by batch
       #for real_samples in tqdm(dataloader):
       for i in range(0, self.n_samples//self.evalbatch, self.evalbatch):
@@ -120,9 +119,6 @@ class eval():
           features_list.append(fake_features)  #(n_samples, 2048)
 
         #cur_samples += evalbatch      
-    #except:
-    # else:
-    #   print("Error in loop")
     
     features_all = torch.cat(features_list)
     mu = torch.mean(features_all, 0) #(1,2048)
