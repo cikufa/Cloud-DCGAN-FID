@@ -130,3 +130,4 @@ class eval():
     # print("mu , sigma", mu.shape, sigma.shape)
     # print("features", len(features_list), features_list[0].shape)
     return mu, sigma
+

@@ -6,6 +6,7 @@ from PIL import Image
 from eval import *
 import csv
 from pathlib import Path 
+import pandas as pd
 class utils():
   def __init__(self, out_pth, model_pth, img_shape):
     self.out_pth= out_pth
@@ -14,14 +15,17 @@ class utils():
     self.freq = 10
     self.latent_dim = 100
   
-  def load_data(self,pth):
+  def load_data(self,pth_train , pth_test):
     datalist = []
-    for img in tqdm(Path(pth).glob('*.jpg')):
+    for img in tqdm(Path(pth_train).glob('*.jpg')):
       datalist.append(img)
+    for img in tqdm(Path(pth_test).glob('*.jpg')):
+      datalist.append(img)
+    print("datalist", datalist[0])
     return datalist
 
   # create and save a plot of generated images
-  def save_plot(self, examples, path, n=2):
+  def save_plot(self, examples, path, n=3):
     examples = (examples + 1) / 2.0 #[-1,1] to [0,1]
     for i in range(n * n):
       plt.subplot(n, n, 1 + i)
@@ -74,7 +78,8 @@ class utils():
   def generate_real_samples(self, cropped_images, img_num, img_dir, datalist, batch_size):  # returns a batch of fake data(img, label)
     while(len(cropped_images) < batch_size):
       img_num= int(np.random.random() * len(datalist))
-      cropped_images = cropped_images + self.preprocess(os.path.join(img_dir, datalist[img_num]), self.img_shape)
+      cropped_images = cropped_images + self.preprocess(datalist[img_num], self.img_shape)
+      
       #img_num = img_num + 1
     real_images = []
     for i in range(batch_size):
@@ -141,4 +146,19 @@ class utils():
         # print(f"fid r1-f/epoch {i}", self.frechet_distance(mu_real1, mu_fake, sigma_real1, sigma_fake).item())
         # print(f"fid r2-f/epoch {i}", self.frechet_distance(mu_real2, mu_fake, sigma_real2, sigma_fake).item())
 
+  def plot_curve(self, log_path):
+    log= pd.read_csv(log_path)
+    log= np.array(log)
+    s=0;b= 100000 #350 
+    x= log[s:b:100, 0]; ld1= log[s:b:100,1]; ld2 = log[s:b:100,2]; lg=log[s:b:100, 3]
 
+    d_loss= (ld1+ld2)/2
+    plt.plot(x, d_loss, label= 'disc loss')
+    # plt.plot(x, ld1, label= 'disc loss real')
+    # plt.plot(x, ld2, label= 'disc loss fake')
+    # log[0:b, 3]
+    plt.plot(x, lg, label= 'gen loss')
+    plt.legend()
+    plt.show()
+    
+    
